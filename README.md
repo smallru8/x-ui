@@ -134,10 +134,12 @@ TG通知内容：
 x-ui v2-ui
 ```
 
-## issue 关闭
-
-各种小白问题看得血压很高
-
-## Stargazers over time
-
-[![Stargazers over time](https://starchart.cc/vaxilu/x-ui.svg)](https://starchart.cc/vaxilu/x-ui)
+## MySQL Mode
+設定以下環境變數，自動切換儲存方式為 MySQL
+```
+ip = os.Getenv("X_UI_MYSQL_IP")
+username = os.Getenv("X_UI_MYSQL_USER")
+passwd = os.Getenv("X_UI_MYSQL_PASSWD")
+dbname = os.Getenv("X_UI_MYSQL_DB")
+port = os.Getenv("X_UI_MYSQL_PORT")
+```
