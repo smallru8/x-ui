@@ -72,8 +72,7 @@ func InitDB(dbPath string) error {
 	//SQLite
 	if ip == nil || username == nil || passwd == nil || dbname == nil || port == nil {
 		db, err = gorm.Open(sqlite.Open(dbPath), c)
-	} 
-	else { //MySQL
+	} else { //MySQL
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", username, passwd, ip, port, dbname)
 		db, err = gorm.Open(mysql.Open(dsn), c)
 	}
