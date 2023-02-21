@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -62,15 +63,14 @@ func InitDB(dbPath string) error {
 		Logger: gormLogger,
 	}
 	
-	var ip,username,passwd,dbname,port string
-	ip = os.Getenv("X_UI_MYSQL_IP")
-	username = os.Getenv("X_UI_MYSQL_USER")
-	passwd = os.Getenv("X_UI_MYSQL_PASSWD")
-	dbname = os.Getenv("X_UI_MYSQL_DB")
-	port = os.Getenv("X_UI_MYSQL_PORT")
+	ip, ok0 := os.LookupEnv("X_UI_MYSQL_IP")
+	username, ok1 := os.LookupEnv("X_UI_MYSQL_USER")
+	passwd, ok2 := os.LookupEnv("X_UI_MYSQL_PASSWD")
+	dbname, ok3 := os.LookupEnv("X_UI_MYSQL_DB")
+	port, ok4 := os.LookupEnv("X_UI_MYSQL_PORT")
 	
 	//SQLite
-	if ip == nil || username == nil || passwd == nil || dbname == nil || port == nil {
+	if !ok0 || !ok1 || !ok2 || !ok3 || !ok4 {
 		db, err = gorm.Open(sqlite.Open(dbPath), c)
 	} else { //MySQL
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", username, passwd, ip, port, dbname)
