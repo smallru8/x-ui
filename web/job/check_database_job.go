@@ -21,7 +21,7 @@ func (j *CheckDatabaseJob) Run() {
 	settings := make([]*model.Setting, 0)
 	err := db.Where("key = ?","needUpdate").Find(&settings).Error
 	if err != nil {
-		return logger.Warning("disable invalid inbounds err:", err)
+		return logger.Warning("Check needUpdate failed")
 	}
 	for _, setting := range settings {
 		if setting.Value == "true" {
