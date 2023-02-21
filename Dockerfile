@@ -2,6 +2,7 @@ FROM golang:latest AS builder
 ARG XUI_REPO="https://github.com/smallru8/x-ui"
 RUN git clone ${XUI_REPO} --depth=1
 WORKDIR /go/x-ui
+RUN go get -u gorm.io/driver/mysql
 RUN go build
 
 FROM debian:11-slim
