@@ -21,6 +21,7 @@ require (
 	golang.org/x/text v0.3.6
 	google.golang.org/grpc v1.38.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gorm.io/driver/sqlite v1.1.4
+	gorm.io/driver/sqlite v1.4.4
+	gorm.io/driver/mysql v1.4.7
 	gorm.io/gorm v1.21.9
 )
