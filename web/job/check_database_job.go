@@ -2,6 +2,7 @@ package job
 
 import (
 	"x-ui/web/service"
+	"x-ui/logger"
 	"x-ui/database"
 	"x-ui/database/model"
 )
@@ -20,7 +21,7 @@ func (j *CheckDatabaseJob) Run() {
 	settings := make([]*model.Setting, 0)
 	err := db.Where("key = ?","needUpdate").Find(&settings).Error
 	if err != nil {
-		return err
+		return logger.Warning("disable invalid inbounds err:", err)
 	}
 	for _, setting := range settings {
 		if setting.Value == "true" {
