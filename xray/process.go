@@ -21,7 +21,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var trafficRegex = regexp.MustCompile("(inbound|outbound|)>>>([^>]+)>>>traffic>>>(downlink|uplink)")
+var trafficRegex = regexp.MustCompile("(inbound|outbound|user)>>>([^>]+)>>>traffic>>>(downlink|uplink)")
 
 func GetBinaryName() string {
 	return fmt.Sprintf("xray-%s-%s", runtime.GOOS, runtime.GOARCH)
@@ -253,8 +253,11 @@ func (p *process) GetTraffic(reset bool) ([]*Traffic, error) {
 	traffics := make([]*Traffic, 0)
 	for _, stat := range resp.GetStat() {
 		matchs := trafficRegex.FindStringSubmatch(stat.Name)
-		if matchs[1] == "user" {//暫時忽略 user
-			continue
+		isUser := false
+		if matchs[1] == "user" {
+			isUser = true
+			//暫時忽略 user
+			//continue
 		}
 		isInbound := matchs[1] == "inbound"
 		tag := matchs[2]
@@ -265,6 +268,7 @@ func (p *process) GetTraffic(reset bool) ([]*Traffic, error) {
 		traffic, ok := tagTrafficMap[tag]
 		if !ok {
 			traffic = &Traffic{
+				IsUser: isUser,
 				IsInbound: isInbound,
 				Tag:       tag,
 			}
