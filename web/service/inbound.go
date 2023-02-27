@@ -209,7 +209,7 @@ func (s *InboundService) DisableInvalidInbounds() (int64, error) {
 }
 
 //TODO 通知其他台重啟、只有Master執行異動資料庫function，Slave只統計流量
-func (s *InboundService) DisableInvalidUsers() (error) {
+func (s *InboundService) DisableInvalidUsers() (int64, error) {
 	db := database.GetDB()
 	now := time.Now().Unix() * 1000
 	users := make([]*model.UserTraffic, 0)
@@ -242,5 +242,5 @@ func (s *InboundService) DisableInvalidUsers() (error) {
 		}
 	}
 	//要通知其他台重啟
-	return err
+	return len(users), err
 }
