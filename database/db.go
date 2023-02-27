@@ -35,6 +35,10 @@ func initUser() error {
 	return nil
 }
 
+func initUserTraffic() error {
+	return db.AutoMigrate(&model.UserTraffic{})
+}
+
 func initInbound() error {
 	return db.AutoMigrate(&model.Inbound{})
 }
@@ -81,6 +85,10 @@ func InitDB(dbPath string) error {
 	}
 
 	err = initUser()
+	if err != nil {
+		return err
+	}
+	err = initUserTraffic()
 	if err != nil {
 		return err
 	}
