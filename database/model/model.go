@@ -64,3 +64,13 @@ type Setting struct {
 	Key   string `json:"key" form:"key"`
 	Value string `json:"value" form:"value"`
 }
+
+type UserTraffic struct {
+	Id         int    `json:"id" form:"id" gorm:"primaryKey;autoIncrement"`
+	Tag        string `json:"tag" form:"tag" gorm:"unique"` //email
+	Up         int64  `json:"up" form:"up"`
+	Down       int64  `json:"down" form:"down"`
+	Total      int64  `json:"total" form:"total"` //流量限制
+	Uuid       string `json:"uuid" form:"uuid"`
+	ExpiryTime int64  `json:"expiryTime" form:"expiryTime"`
+}
