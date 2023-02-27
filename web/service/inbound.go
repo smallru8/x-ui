@@ -7,12 +7,30 @@ import (
 	"x-ui/database/model"
 	"x-ui/util/common"
 	"x-ui/xray"
-
+	"encoding/json"
 	"gorm.io/gorm"
 )
 
 type InboundService struct {
 }
+
+/////////////////////////////////
+type Client_data struct {
+    Email string `json:email`
+    Level int64 `json:level`
+    Id string `json:"id"`
+    AlterId int64 `json:alterId`
+}
+
+type Setting_data struct {
+    Clients []Client_data `json:clients`
+    DisableInsecureEncryption bool `json:disableInsecureEncryption`
+}
+
+func remove(slice []Client_data, s int) []Client_data {
+    return append(slice[:s], slice[s+1:]...)
+}
+/////////////////////////////////
 
 func (s *InboundService) GetInbounds(userId int) ([]*model.Inbound, error) {
 	db := database.GetDB()
@@ -177,6 +195,7 @@ func (s *InboundService) AddTraffic(traffics []*xray.Traffic) (err error) {
 	return
 }
 
+//TODO 通知其他台重啟、只有Master執行異動資料庫function，Slave只統計流量
 func (s *InboundService) DisableInvalidInbounds() (int64, error) {
 	db := database.GetDB()
 	now := time.Now().Unix() * 1000
@@ -185,5 +204,43 @@ func (s *InboundService) DisableInvalidInbounds() (int64, error) {
 		Update("enable", false)
 	err := result.Error
 	count := result.RowsAffected
+	//要通知其他台重啟
 	return count, err
+}
+
+//TODO 通知其他台重啟、只有Master執行異動資料庫function，Slave只統計流量
+func (s *InboundService) DisableInvalidUsers() (error) {
+	db := database.GetDB()
+	now := time.Now().Unix() * 1000
+	users := make([]*model.UserTraffic, 0)
+	err := db.Where("(total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)",now).Find(&users).Error
+	if err == nil && len(users) > 0 {//有需要調整的使用者
+		inbs := make([]*model.Inbound, 0)
+		err := db.Find(&inbs).Error
+		if err == nil {
+			for _, user := range users {
+				for j := 0 ; j<len(inbs) ; j = j+1 {
+					dataJson := inbs[j].Settings
+					var jsonct Setting_data
+					_ = json.Unmarshal([]byte(dataJson), &jsonct)
+					
+					for i := len(jsonct.Clients)-1 ; i >= 0 ; i = i-1 {
+						if jsonct.Clients[i].Email == user.Tag && jsonct.Clients[i].Id == user.Uuid {
+							jsonct.Clients = remove(jsonct.Clients,i)
+						}
+					}
+					rawBytes, err := json.Marshal(jsonct)
+					if err == nil {//存回去
+						inbs[j].Settings = string(rawBytes)
+					}
+				}
+			}
+			
+			for _, inb := inbs {//存回DB
+				db.Model(model.Inbound{}).Where("`id` = ?",inb.Id).Update("settings", inb.Settings)
+			}	
+		}
+	}
+	//要通知其他台重啟
+	return err
 }
