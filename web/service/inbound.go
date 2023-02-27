@@ -143,17 +143,28 @@ func (s *InboundService) AddTraffic(traffics []*xray.Traffic) (err error) {
 		return nil
 	}
 	db := database.GetDB()
+	txUser := db.Model(model.UserTraffic{}).Begin()
 	db = db.Model(model.Inbound{})
 	tx := db.Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()
+			txUser.Rollback()
 		} else {
 			tx.Commit()
+			txUser.Commit()
 		}
 	}()
 	for _, traffic := range traffics {
-		if traffic.IsInbound {
+		if traffic.IsUser {
+			err = txUser.Where("tag = ?", traffic.Tag).
+				UpdateColumn("up", gorm.Expr("up + ?", traffic.Up)).
+				UpdateColumn("down", gorm.Expr("down + ?", traffic.Down)).
+				Error
+			if err != nil {
+				return
+			}
+		} else if traffic.IsInbound {
 			err = tx.Where("tag = ?", traffic.Tag).
 				UpdateColumn("up", gorm.Expr("up + ?", traffic.Up)).
 				UpdateColumn("down", gorm.Expr("down + ?", traffic.Down)).
