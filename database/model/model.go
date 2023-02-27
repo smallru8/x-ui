@@ -74,3 +74,9 @@ type UserTraffic struct {
 	Uuid       string `json:"uuid" form:"uuid"`
 	ExpiryTime int64  `json:"expiryTime" form:"expiryTime"`
 }
+
+type SyncData struct {
+	Id         int    `json:"id" form:"id" gorm:"primaryKey;autoIncrement"`
+	Node       string `json:"node" form:"node"`
+	Synced     bool   `json:"synced" form:"synced"`
+}
