@@ -15,6 +15,29 @@ import (
 
 var db *gorm.DB
 
+func initSyncData() error {
+	err := db.AutoMigrate(&model.SyncData{})
+	if err != nil {
+		return err
+	}
+	node, ok := os.LookupEnv("X_UI_NODE_CODE")
+	var count int64
+	if ok {
+		err = db.Model(&model.SyncData{}).Where("node = ?",node).Count(&count).Error
+		if err != nil {
+			return err
+		}
+		if count == 0 {
+			syncdata := &model.SyncData{
+				Node: node,
+				Synced: true,
+			}
+			return db.Create(syncdata).Error
+		}
+	}
+	return nil
+}
+
 func initUser() error {
 	err := db.AutoMigrate(&model.User{})
 	if err != nil {
@@ -45,10 +68,6 @@ func initInbound() error {
 
 func initSetting() error {
 	return db.AutoMigrate(&model.Setting{})
-}
-
-func initSyncData() error {
-	return db.AutoMigrate(&model.SyncData{})
 }
 
 func InitDB(dbPath string) error {
