@@ -28,7 +28,7 @@ type Setting_data struct {
     DisableInsecureEncryption bool `json:disableInsecureEncryption`
 }
 
-func remove(slice []Client_data, s int) []Client_data {
+func remove(slice []*Client_data, s int) []*Client_data {
     return append(slice[:s], slice[s+1:]...)
 }
 /////////////////////////////////
@@ -233,7 +233,7 @@ func (s *InboundService) AdjustUsers() (count int64, err error) {
 	err = db.Where("(((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?) or (enable = ? and waitenable = ?)",now,true,true,true).Find(&users).Error
 	count = 0
 	if err == nil && len(users) > 0 {//有需要調整的使用者
-		count = len(users)
+		count = int64(len(users))
 		inbs := make([]*model.Inbound, 0)
 		err = db.Find(&inbs).Error
 		if err == nil {
@@ -273,7 +273,7 @@ func (s *InboundService) AdjustUsers() (count int64, err error) {
 	//取所有要重新載入的 user
 	err = db.Where("enable = ? and waitenable = ?",false,true).Find(&users).Error
 	if err == nil && len(users) > 0 {
-		count = len(users)
+		count = int64(len(users))
 		//取所有 inbound
 		inbs := make([]*model.Inbound, 0)
 		err = db.Find(&inbs).Error
