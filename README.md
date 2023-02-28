@@ -142,6 +142,12 @@ username = os.Getenv("X_UI_MYSQL_USER")
 passwd = os.Getenv("X_UI_MYSQL_PASSWD")
 dbname = os.Getenv("X_UI_MYSQL_DB")
 port = os.Getenv("X_UI_MYSQL_PORT")
+
+```
+## Master/Slave
+MySQL inbound 的 remark 欄位填對應國碼
+MySQL usertraffic 的 country 欄位填允許使用的 inbound 國碼，用空格區分多個
+```
 //節點識別碼
 node = os.Getenv("X_UI_NODE_CODE")
 //master/slave
