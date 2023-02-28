@@ -293,10 +293,14 @@ func (s *Server) startTask() {
 		s.cron.AddJob("@every 10s", job.NewXrayTrafficJob())
 	}()
 
-	// 每 30 秒检查一次 inbound 流量超出和到期的情况
+	// 每 30 秒檢查一次 syncdata 
 	s.cron.AddJob("@every 30s", job.NewCheckDatabaseJob())
-	// 每 10 分檢查一次 setting 的 needUpdate 有沒有被設為 true
-	s.cron.AddJob("@every 10m", job.NewCheckInboundJob())
+	
+	xuimode, ok := os.LookupEnv("X_UI_MODE")
+	if !ok || xuimode == "master"{ //為 master 或未設定 master/slave 再啟用檢查, slave 則不檢查
+		// 每 30 秒检查一次 inbound 流量超出和到期的情况
+		s.cron.AddJob("@every 30s", job.NewCheckInboundJob())
+	}
 	// 每一天提示一次流量情况,上海时间8点30
 	var entry cron.EntryID
 	isTgbotenabled, err := s.settingService.GetTgbotenabled()
