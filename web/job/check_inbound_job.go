@@ -3,6 +3,8 @@ package job
 import (
 	"x-ui/logger"
 	"x-ui/web/service"
+	"x-ui/database"
+	"x-ui/database/model"
 )
 
 type CheckInboundJob struct {
@@ -24,6 +26,10 @@ func (j *CheckInboundJob) Run() {
 		logger.Warning("disable invalid user err:", err2)
 	} else if count > 0 || count2 > 0 {
 		logger.Debugf("disabled %v inbounds", count)
+		//通知其他主機有更動須重啟
+		db := database.GetDB()
+		db.Model(model.SyncData{}).Where("node != ?",os.LookupEnv("X_UI_NODE_CODE")).Update("Synced",false)
+		
 		j.xrayService.SetToNeedRestart()
 	}
 }
