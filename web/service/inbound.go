@@ -9,6 +9,7 @@ import (
 	"x-ui/xray"
 	"encoding/json"
 	"gorm.io/gorm"
+	"strings"
 )
 
 type InboundService struct {
@@ -205,12 +206,12 @@ func (s *InboundService) DisableInvalidInbounds() (int64, error) {
 	err := result.Error
 	count := result.RowsAffected
 	
-	//要通知其他台重啟
+	//要通知slave重啟
 	return count, err
 }
 
 //只有Master執行異動資料庫function，Slave只統計流量
-func (s *InboundService) DisableInvalidUsers() (int64, err error) {
+func (s *InboundService) AdjustUsers() (int64, err error) {
 	db := database.GetDB()
 	now := time.Now().Unix() * 1000
 	
@@ -228,7 +229,8 @@ func (s *InboundService) DisableInvalidUsers() (int64, err error) {
 	}()
 	
 	users := make([]*model.UserTraffic, 0)
-	err = db.Where("((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?",now,true).Find(&users).Error
+	//waitenable 表示帳號等待重新載入, 所以先從 inbound 移出,待下一步移入
+	err = db.Where("(((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?) or (enable = ? and waitenable = ?)",now,true,true,true).Find(&users).Error
 	count := 0
 	if err == nil && len(users) > 0 {//有需要調整的使用者
 		count = len(users)
@@ -253,16 +255,64 @@ func (s *InboundService) DisableInvalidUsers() (int64, err error) {
 				}
 			}
 			
-			for _, inb := inbs {//存回DB
+			for _, inb := range inbs {//存回DB
 				err = txinb.Where("`id` = ?",inb.Id).Update("settings", inb.Settings)
 				if err != nil {
 					return count, err
 				}
 			}
-			err = txuser.Where("((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?",now,true).Update("enable", false)
+			err = txuser.Where("(((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?) or (enable = ? and waitenable = ?)",now,true,true,true).Update("enable", false)
+			if err != nil {
+				return count, err
+			}
 		}
 	}
 	
-	//要通知其他台重啟
+	//需要被重新載入的 user
+	users = make([]*model.UserTraffic, 0)
+	//取所有要重新載入的 user
+	err = db.Where("enable = ? and waitenable = ?",false,true).Find(&users).Error
+	if err == nil && len(users) > 0 {
+		count = len(users)
+		//取所有 inbound
+		inbs := make([]*model.Inbound, 0)
+		err = db.Find(&inbs).Error
+		for _, user := range users {
+			countries := strings.Split(user.Country," ")
+			for _, country := range countries {
+				for i := 0 ; i < len(inbs) ; i = i+1 {
+					if inbs[i].Remark == country {//將 user 加入
+						var jsonct Setting_data
+						_ = json.Unmarshal([]byte(inbs[i].Settings), &jsonct)
+						////////////////////////////建構 json 格式資料
+						user_data := &Client_data{
+							Email: user.Tag,
+							Level: 0,
+							Id: user.Uuid,
+							AlterId: 10,
+						}
+						////////////////////////////
+						jsonct.Clients = append(jsonct.Clients,user_data)
+						rawBytes, err := json.Marshal(jsonct)
+						if err == nil {//存回去
+							inbs[i].Settings = string(rawBytes)
+						}
+					}
+				}
+			}
+		}
+		for _, inb := range inbs {//存回DB
+			err = txinb.Where("`id` = ?",inb.Id).Update("settings", inb.Settings)
+			if err != nil {
+				return count, err
+			}
+		}
+		err = txuser.Where("enable = ? and waitenable = ?",false,true).Updates(map[string]interface{}{"waitenable": false, "enable": true})
+		if err != nil {
+			return count, err
+		}
+	}
+	
+	//要通知slave重啟
 	return count, err
 }
