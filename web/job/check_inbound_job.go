@@ -28,7 +28,7 @@ func (j *CheckInboundJob) Run() {
 		logger.Debugf("disabled %v inbounds", count)
 		//通知其他主機有更動須重啟
 		db := database.GetDB()
-		db.Model(model.SyncData{}).Where("node != ?",os.LookupEnv("X_UI_NODE_CODE")).Update("Synced",false)
+		db.Model(model.SyncData{}).Where("node != ?",os.LookupEnv("X_UI_NODE_CODE")).Update("synced",false)
 		
 		j.xrayService.SetToNeedRestart()
 	}
