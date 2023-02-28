@@ -72,6 +72,7 @@ type UserTraffic struct {
 	Down       int64  `json:"down" form:"down"`
 	Total      int64  `json:"total" form:"total"` //流量限制
 	Uuid       string `json:"uuid" form:"uuid"`
+	Enable     bool   `json:"enable" form:"enable"`
 	ExpiryTime int64  `json:"expiryTime" form:"expiryTime"`
 }
 
