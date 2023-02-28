@@ -204,7 +204,10 @@ func (s *InboundService) DisableInvalidInbounds() (int64, error) {
 		Update("enable", false)
 	err := result.Error
 	count := result.RowsAffected
+	
 	//要通知其他台重啟
+	
+	
 	return count, err
 }
 
