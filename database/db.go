@@ -64,10 +64,6 @@ func initUserTraffic() error {
 	return db.AutoMigrate(&model.UserTraffic{})
 }
 
-func initCountry() error {
-	return db.AutoMigrate(&model.Country{})
-}
-
 func initInbound() error {
 	return db.AutoMigrate(&model.Inbound{})
 }
@@ -130,10 +126,6 @@ func InitDB(dbPath string) error {
 		return err
 	}
 	err = initSyncData()
-	if err != nil {
-		return err
-	}
-	err = initCountry()
 	if err != nil {
 		return err
 	}
