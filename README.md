@@ -144,4 +144,6 @@ dbname = os.Getenv("X_UI_MYSQL_DB")
 port = os.Getenv("X_UI_MYSQL_PORT")
 //節點識別碼
 node = os.Getenv("X_UI_NODE_CODE")
+//master/slave
+mode = os.Getenv("X_UI_MODE")
 ```
