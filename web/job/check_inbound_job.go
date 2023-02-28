@@ -19,11 +19,11 @@ func NewCheckInboundJob() *CheckInboundJob {
 //Master 執行就好
 func (j *CheckInboundJob) Run() {
 	count, err := j.inboundService.DisableInvalidInbounds()
-	count2, err2 := j.inboundService.DisableInvalidUsers()
+	count2, err2 := j.inboundService.AdjustUsers()
 	if err != nil {
 		logger.Warning("disable invalid inbounds err:", err)
 	} else if err2 != nil {
-		logger.Warning("disable invalid user err:", err2)
+		logger.Warning("adjust user err:", err2)
 	} else if count > 0 || count2 > 0 {
 		logger.Debugf("disabled %v inbounds", count)
 		//通知其他主機有更動須重啟
