@@ -195,7 +195,7 @@ func (s *InboundService) AddTraffic(traffics []*xray.Traffic) (err error) {
 	return
 }
 
-//TODO 通知其他台重啟、只有Master執行異動資料庫function，Slave只統計流量
+//只有Master執行異動資料庫function，Slave只統計流量
 func (s *InboundService) DisableInvalidInbounds() (int64, error) {
 	db := database.GetDB()
 	now := time.Now().Unix() * 1000
@@ -206,20 +206,34 @@ func (s *InboundService) DisableInvalidInbounds() (int64, error) {
 	count := result.RowsAffected
 	
 	//要通知其他台重啟
-	
-	
 	return count, err
 }
 
-//TODO 通知其他台重啟、只有Master執行異動資料庫function，Slave只統計流量
-func (s *InboundService) DisableInvalidUsers() (int64, error) {
+//只有Master執行異動資料庫function，Slave只統計流量
+func (s *InboundService) DisableInvalidUsers() (int64, err error) {
 	db := database.GetDB()
 	now := time.Now().Unix() * 1000
+	
+	txuser := db.Model(model.UserTraffic{}).Begin()
+	txinb := db.Model(model.Inbound{}).Begin()
+	
+	defer func() {
+		if err != nil {
+			txuser.Rollback()
+			txinb.Rollback()
+		} else {
+			txuser.Commit()
+			txinb.Commit()
+		}
+	}()
+	
 	users := make([]*model.UserTraffic, 0)
-	err := db.Where("((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?",now,true).Find(&users).Error
+	err = db.Where("((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?",now,true).Find(&users).Error
+	count := 0
 	if err == nil && len(users) > 0 {//有需要調整的使用者
+		count = len(users)
 		inbs := make([]*model.Inbound, 0)
-		err := db.Find(&inbs).Error
+		err = db.Find(&inbs).Error
 		if err == nil {
 			for _, user := range users {
 				for j := 0 ; j<len(inbs) ; j = j+1 {
@@ -240,11 +254,15 @@ func (s *InboundService) DisableInvalidUsers() (int64, error) {
 			}
 			
 			for _, inb := inbs {//存回DB
-				db.Model(model.Inbound{}).Where("`id` = ?",inb.Id).Update("settings", inb.Settings)
+				err = txinb.Where("`id` = ?",inb.Id).Update("settings", inb.Settings)
+				if err != nil {
+					return count, err
+				}
 			}
-			db.Model(model.UserTraffic{}).Where("((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?",now,true).Update("enable", false)
+			err = txuser.Where("((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?",now,true).Update("enable", false)
 		}
 	}
+	
 	//要通知其他台重啟
-	return len(users), err
+	return count, err
 }
