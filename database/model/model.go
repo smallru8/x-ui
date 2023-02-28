@@ -87,9 +87,3 @@ type SyncData struct {
 	Node       string `json:"node" form:"node"`
 	Synced     bool   `json:"synced" form:"synced"`
 }
-//inbound 對應國家代碼
-type Country struct {
-	Id         int    `json:"id" form:"id" gorm:"primaryKey;autoIncrement"`
-	Tag        string `json:"tag" form:"tag" gorm:"unique"`
-	Country    string `json:"country" form:"country"`
-}
