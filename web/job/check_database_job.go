@@ -17,14 +17,14 @@ func NewCheckDatabaseJob() *CheckDatabaseJob {
 
 func (j *CheckDatabaseJob) Run() {
 	db := database.GetDB()
-	settings := make([]*model.Setting, 0)
-	err := db.Where("`key` = ?","needUpdate").Find(&settings).Error
+	syncdata := make([]*model.SyncData, 0)
+	err := db.Where("`node` = ?",os.LookupEnv("X_UI_NODE_CODE")).Find(&syncdata).Error
 	if err == nil {
 		//return logger.Warning("Check needUpdate failed")
 	
-		for _, setting := range settings {
-			if setting.Value == "true" {
-				db.Model(model.Setting{}).Where("`key` = ?","needUpdate").Update("value", "false")
+		for _, syncd := range syncdata {
+			if syncd.Synced == false {
+				db.Model(model.SyncData{}).Where("`node` = ?",os.LookupEnv("X_UI_NODE_CODE")).Update("synced", true)
 				j.xrayService.SetToNeedRestart()
 			}
 		}
