@@ -22,18 +22,20 @@ func initSyncData() error {
 	}
 	node, ok := os.LookupEnv("X_UI_NODE_CODE")
 	var count int64
-	if ok {
-		err = db.Model(&model.SyncData{}).Where("node = ?",node).Count(&count).Error
-		if err != nil {
-			return err
+	if !ok {
+		node = "0"
+		os.Setenv("X_UI_NODE_CODE", "0")
+	}
+	err = db.Model(&model.SyncData{}).Where("node = ?",node).Count(&count).Error
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		syncdata := &model.SyncData{
+			Node: node,
+			Synced: true,
 		}
-		if count == 0 {
-			syncdata := &model.SyncData{
-				Node: node,
-				Synced: true,
-			}
-			return db.Create(syncdata).Error
-		}
+		return db.Create(syncdata).Error
 	}
 	return nil
 }
