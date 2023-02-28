@@ -216,7 +216,7 @@ func (s *InboundService) DisableInvalidUsers() (int64, error) {
 	db := database.GetDB()
 	now := time.Now().Unix() * 1000
 	users := make([]*model.UserTraffic, 0)
-	err := db.Where("(total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)",now).Find(&users).Error
+	err := db.Where("((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?",now,true).Find(&users).Error
 	if err == nil && len(users) > 0 {//有需要調整的使用者
 		inbs := make([]*model.Inbound, 0)
 		err := db.Find(&inbs).Error
@@ -241,7 +241,8 @@ func (s *InboundService) DisableInvalidUsers() (int64, error) {
 			
 			for _, inb := inbs {//存回DB
 				db.Model(model.Inbound{}).Where("`id` = ?",inb.Id).Update("settings", inb.Settings)
-			}	
+			}
+			db.Model(model.UserTraffic{}).Where("((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?",now,true).Update("enable", false)
 		}
 	}
 	//要通知其他台重啟
