@@ -24,7 +24,7 @@ type Client_data struct {
 }
 
 type Setting_data struct {
-    Clients []Client_data `json:clients`
+    Clients []*Client_data `json:clients`
     DisableInsecureEncryption bool `json:disableInsecureEncryption`
 }
 
@@ -211,7 +211,7 @@ func (s *InboundService) DisableInvalidInbounds() (int64, error) {
 }
 
 //只有Master執行異動資料庫function，Slave只統計流量
-func (s *InboundService) AdjustUsers() (int64, err error) {
+func (s *InboundService) AdjustUsers() (count int64, err error) {
 	db := database.GetDB()
 	now := time.Now().Unix() * 1000
 	
@@ -231,7 +231,7 @@ func (s *InboundService) AdjustUsers() (int64, err error) {
 	users := make([]*model.UserTraffic, 0)
 	//waitenable 表示帳號等待重新載入, 所以先從 inbound 移出,待下一步移入
 	err = db.Where("(((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?) or (enable = ? and waitenable = ?)",now,true,true,true).Find(&users).Error
-	count := 0
+	count = 0
 	if err == nil && len(users) > 0 {//有需要調整的使用者
 		count = len(users)
 		inbs := make([]*model.Inbound, 0)
@@ -256,12 +256,12 @@ func (s *InboundService) AdjustUsers() (int64, err error) {
 			}
 			
 			for _, inb := range inbs {//存回DB
-				err = txinb.Where("`id` = ?",inb.Id).Update("settings", inb.Settings)
+				err = txinb.Where("`id` = ?",inb.Id).Update("settings", inb.Settings).Error
 				if err != nil {
 					return count, err
 				}
 			}
-			err = txuser.Where("(((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?) or (enable = ? and waitenable = ?)",now,true,true,true).Update("enable", false)
+			err = txuser.Where("(((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?) or (enable = ? and waitenable = ?)",now,true,true,true).Update("enable", false).Error
 			if err != nil {
 				return count, err
 			}
@@ -302,12 +302,12 @@ func (s *InboundService) AdjustUsers() (int64, err error) {
 			}
 		}
 		for _, inb := range inbs {//存回DB
-			err = txinb.Where("`id` = ?",inb.Id).Update("settings", inb.Settings)
+			err = txinb.Where("`id` = ?",inb.Id).Update("settings", inb.Settings).Error
 			if err != nil {
 				return count, err
 			}
 		}
-		err = txuser.Where("enable = ? and waitenable = ?",false,true).Updates(map[string]interface{}{"waitenable": false, "enable": true})
+		err = txuser.Where("enable = ? and waitenable = ?",false,true).Updates(map[string]interface{}{"waitenable": false, "enable": true}).Error
 		if err != nil {
 			return count, err
 		}
