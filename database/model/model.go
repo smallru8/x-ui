@@ -74,10 +74,22 @@ type UserTraffic struct {
 	Uuid       string `json:"uuid" form:"uuid"`
 	Enable     bool   `json:"enable" form:"enable"`
 	ExpiryTime int64  `json:"expiryTime" form:"expiryTime"`
+	
+	//開放使用的 inbound 區域
+	Country    string `json:"country" form:"country"`
+	
+	//等候啟用的帳號
+	WaitEnable bool   `json:"waitenable" form:"waitenable"`
 }
 
 type SyncData struct {
 	Id         int    `json:"id" form:"id" gorm:"primaryKey;autoIncrement"`
 	Node       string `json:"node" form:"node"`
 	Synced     bool   `json:"synced" form:"synced"`
+}
+//inbound 對應國家代碼
+type Country struct {
+	Id         int    `json:"id" form:"id" gorm:"primaryKey;autoIncrement"`
+	Tag        string `json:"tag" form:"tag" gorm:"unique"`
+	Country    string `json:"country" form:"country"`
 }
