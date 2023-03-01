@@ -264,11 +264,11 @@ func (p *process) GetTraffic(reset bool) ([]*Traffic, error) {
 		isDown := matchs[3] == "downlink"
 		
 		//DEBUG
-		fmt.Printf("===============\n")
-		fmt.Printf("isDown: %t\n",isDown)
-		fmt.Printf("matchs[3]: %s\n",matchs[3])
-		fmt.Printf("Flow: %d\n",stat.Value)
-		fmt.Printf("===============\n")
+		//fmt.Printf("===============\n")
+		//fmt.Printf("isDown: %t\n",isDown)
+		//fmt.Printf("matchs[3]: %s\n",matchs[3])
+		//fmt.Printf("Flow: %d\n",stat.Value)
+		//fmt.Printf("===============\n")
 		
 		if tag == "api" {
 			continue
