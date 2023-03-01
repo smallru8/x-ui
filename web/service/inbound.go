@@ -175,6 +175,9 @@ func (s *InboundService) AddTraffic(traffics []*xray.Traffic) (err error) {
 		}
 	}()
 	for _, traffic := range traffics {
+		//DEBUG
+		fmt.Printf("Up: %d",traffic.Up)
+		fmt.Printf("Down: %d",traffic.Down)
 		if traffic.IsUser {
 			err = txUser.Where("tag = ?", traffic.Tag).
 				UpdateColumn("up", gorm.Expr("up + ?", traffic.Up)).
