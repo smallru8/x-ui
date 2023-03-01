@@ -230,7 +230,7 @@ func (s *InboundService) AdjustUsers() (count int64, err error) {
 	
 	users := make([]*model.UserTraffic, 0)
 	//waitenable 表示帳號等待重新載入, 所以先從 inbound 移出,待下一步移入
-	err = db.Where("(((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?) or (enable = ? and waitenable = ?)",now,true,true,true).Find(&users).Error
+	err = db.Where("(((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?) or (enable = ? and wait_enable = ?)",now,true,true,true).Find(&users).Error
 	count = 0
 	if err == nil && len(users) > 0 {//有需要調整的使用者
 		count = int64(len(users))
@@ -261,7 +261,7 @@ func (s *InboundService) AdjustUsers() (count int64, err error) {
 					return count, err
 				}
 			}
-			err = txuser.Where("(((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?) or (enable = ? and waitenable = ?)",now,true,true,true).Update("enable", false).Error
+			err = txuser.Where("(((total > 0 and up + down >= total) or (expiry_time > 0 and expiry_time <= ?)) and enable = ?) or (enable = ? and wait_enable = ?)",now,true,true,true).Update("enable", false).Error
 			if err != nil {
 				return count, err
 			}
@@ -271,7 +271,7 @@ func (s *InboundService) AdjustUsers() (count int64, err error) {
 	//需要被重新載入的 user
 	users = make([]*model.UserTraffic, 0)
 	//取所有要重新載入的 user
-	err = db.Where("enable = ? and waitenable = ?",false,true).Find(&users).Error
+	err = db.Where("enable = ? and wait_enable = ?",false,true).Find(&users).Error
 	if err == nil && len(users) > 0 {
 		count = int64(len(users))
 		//取所有 inbound
@@ -307,7 +307,7 @@ func (s *InboundService) AdjustUsers() (count int64, err error) {
 				return count, err
 			}
 		}
-		err = txuser.Where("enable = ? and waitenable = ?",false,true).Updates(map[string]interface{}{"waitenable": false, "enable": true}).Error
+		err = txuser.Where("enable = ? and wait_enable = ?",false,true).Updates(map[string]interface{}{"wait_enable": false, "enable": true}).Error
 		if err != nil {
 			return count, err
 		}
