@@ -175,22 +175,21 @@ func (s *InboundService) AddTraffic(traffics []*xray.Traffic) (err error) {
 		}
 	}()
 	for _, traffic := range traffics {
-		//DEBUG
-		fmt.Printf("Up: %d",traffic.Up)
-		fmt.Printf("Down: %d",traffic.Down)
 		if traffic.IsUser {
-			err = txUser.Where("tag = ?", traffic.Tag).
-				UpdateColumn("up", gorm.Expr("up + ?", traffic.Up)).
-				UpdateColumn("down", gorm.Expr("down + ?", traffic.Down)).
-				Error
+			//err = txUser.Where("tag = ?", traffic.Tag).
+			//	UpdateColumn("up", gorm.Expr("up + ?", traffic.Up)).
+			//	UpdateColumn("down", gorm.Expr("down + ?", traffic.Down)).
+			//	Error
+			err = txUser.Where("tag = ?", traffic.Tag).Updates(map[string]interface{}{"up" : gorm.Expr("up + ?", traffic.Up) , "down" : gorm.Expr("down + ?", traffic.Down)}).Error
 			if err != nil {
 				return
 			}
 		} else if traffic.IsInbound {
-			err = tx.Where("tag = ?", traffic.Tag).
-				UpdateColumn("up", gorm.Expr("up + ?", traffic.Up)).
-				UpdateColumn("down", gorm.Expr("down + ?", traffic.Down)).
-				Error
+			//err = tx.Where("tag = ?", traffic.Tag).
+			//	UpdateColumn("up", gorm.Expr("up + ?", traffic.Up)).
+			//	UpdateColumn("down", gorm.Expr("down + ?", traffic.Down)).
+			//	Error
+			err = tx.Where("tag = ?", traffic.Tag).Updates(map[string]interface{}{"up" : gorm.Expr("up + ?", traffic.Up) , "down" : gorm.Expr("down + ?", traffic.Down)}).Error
 			if err != nil {
 				return
 			}
