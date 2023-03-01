@@ -24,7 +24,7 @@ type Client_data struct {
 }
 
 type Setting_data struct {
-    clients []*Client_data `json:clients`
+    Clients []*Client_data `json:clients`
     DisableInsecureEncryption bool `json:disableInsecureEncryption`
 }
 
@@ -245,9 +245,9 @@ func (s *InboundService) AdjustUsers() (count int64, err error) {
 					var jsonct Setting_data
 					_ = json.Unmarshal([]byte(dataJson), &jsonct)
 					
-					for i := len(jsonct.clients)-1 ; i >= 0 ; i = i-1 {
-						if jsonct.clients[i].Email == user.Tag && jsonct.clients[i].Id == user.Uuid {
-							jsonct.clients = remove(jsonct.clients,i)
+					for i := len(jsonct.Clients)-1 ; i >= 0 ; i = i-1 {
+						if jsonct.Clients[i].Email == user.Tag && jsonct.Clients[i].Id == user.Uuid {
+							jsonct.Clients = remove(jsonct.Clients,i)
 						}
 					}
 					rawBytes, err := json.Marshal(jsonct)
@@ -294,7 +294,7 @@ func (s *InboundService) AdjustUsers() (count int64, err error) {
 							AlterId: 10,
 						}
 						////////////////////////////
-						jsonct.clients = append(jsonct.clients,user_data)
+						jsonct.Clients = append(jsonct.Clients,user_data)
 						rawBytes, err := json.Marshal(jsonct)
 						if err == nil {//存回去
 							inbs[i].Settings = string(rawBytes)
