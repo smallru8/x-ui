@@ -24,7 +24,7 @@ type Client_data struct {
 }
 
 type Setting_data struct {
-    Clients []*Client_data `json:clients`
+    Clients []*Client_data `json:"clients"`
     DisableInsecureEncryption bool `json:disableInsecureEncryption`
 }
 
