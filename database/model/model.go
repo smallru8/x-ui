@@ -67,7 +67,8 @@ type Setting struct {
 
 type UserTraffic struct {
 	Id         int    `json:"id" form:"id" gorm:"primaryKey;autoIncrement"`
-	Tag        string `json:"tag" form:"tag" gorm:"unique"` //email
+	Tag        string `json:"tag" form:"tag" gorm:"unique"` //email#tag 同一email可能有多筆uuid 用tag區分
+	Email      string `json:"email" form:"email"` //email 紀錄原本的 email
 	Up         int64  `json:"up" form:"up"`
 	Down       int64  `json:"down" form:"down"`
 	Total      int64  `json:"total" form:"total"` //流量限制
@@ -75,7 +76,7 @@ type UserTraffic struct {
 	Enable     bool   `json:"enable" form:"enable"`
 	ExpiryTime int64  `json:"expiryTime" form:"expiryTime"`
 	
-	//開放使用的 inbound 區域
+	//開放使用的 inbound 區域,用空白區隔多個
 	Country    string `json:"country" form:"country"`
 	
 	//等候啟用的帳號
