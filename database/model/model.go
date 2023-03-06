@@ -88,3 +88,10 @@ type SyncData struct {
 	Node       string `json:"node" form:"node"`
 	Synced     bool   `json:"synced" form:"synced"`
 }
+
+//這張表示給外部服務參考使用,x-ui不會用到
+type Domain struct {
+	Id         int    `json:"id" form:"id" gorm:"primaryKey;autoIncrement"`
+	Domain     string `json:"domain" form:"domain"`
+	Country    string `json:"country" form:"country"`
+}
