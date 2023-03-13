@@ -246,7 +246,7 @@ func (s *InboundService) AdjustUsers() (count int64, err error) {
 					_ = json.Unmarshal([]byte(dataJson), &jsonct)
 					
 					for i := len(jsonct.Clients)-1 ; i >= 0 ; i = i-1 {
-						if jsonct.Clients[i].Email == user.Tag && jsonct.Clients[i].Id == user.Uuid {
+						if jsonct.Clients[i].Email == user.Tag {//&& jsonct.Clients[i].Id == user.Uuid
 							jsonct.Clients = remove(jsonct.Clients,i)
 						}
 					}
