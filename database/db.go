@@ -2,15 +2,17 @@ package database
 
 import (
 	"fmt"
-	"gorm.io/driver/mysql"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	//"gorm.io/driver/mysql"
 	"io/fs"
 	"os"
 	"path"
 	"x-ui/config"
 	"x-ui/database/model"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var db *gorm.DB
@@ -26,13 +28,13 @@ func initSyncData() error {
 		node = "0"
 		os.Setenv("X_UI_NODE_CODE", "0")
 	}
-	err = db.Model(&model.SyncData{}).Where("node = ?",node).Count(&count).Error
+	err = db.Model(&model.SyncData{}).Where("node = ?", node).Count(&count).Error
 	if err != nil {
 		return err
 	}
 	if count == 0 {
 		syncdata := &model.SyncData{
-			Node: node,
+			Node:   node,
 			Synced: true,
 		}
 		return db.Create(syncdata).Error
@@ -94,21 +96,23 @@ func InitDB(dbPath string) error {
 	c := &gorm.Config{
 		Logger: gormLogger,
 	}
-	
+
 	ip, ok0 := os.LookupEnv("X_UI_MYSQL_IP")
 	username, ok1 := os.LookupEnv("X_UI_MYSQL_USER")
 	passwd, ok2 := os.LookupEnv("X_UI_MYSQL_PASSWD")
 	dbname, ok3 := os.LookupEnv("X_UI_MYSQL_DB")
 	port, ok4 := os.LookupEnv("X_UI_MYSQL_PORT")
-	
+
 	//SQLite
 	if !ok0 || !ok1 || !ok2 || !ok3 || !ok4 {
 		db, err = gorm.Open(sqlite.Open(dbPath), c)
 	} else { //MySQL
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", username, passwd, ip, port, dbname)
-		db, err = gorm.Open(mysql.Open(dsn), c)
+		//mysql dsn
+		//dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", username, passwd, ip, port, dbname)
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Taipei", ip, username, passwd, dbname, port)
+		db, err = gorm.Open(postgres.Open(dsn), c)
 	}
-	
+
 	if err != nil {
 		return err
 	}
