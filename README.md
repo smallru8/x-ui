@@ -134,8 +134,8 @@ TG通知内容：
 x-ui v2-ui
 ```
 
-## MySQL Mode
-設定以下環境變數，自動切換儲存方式為 MySQL
+## Postgresql Mode
+設定以下環境變數，自動切換儲存方式為 Postgresql  
 ```
 ip = os.Getenv("X_UI_MYSQL_IP")
 username = os.Getenv("X_UI_MYSQL_USER")
@@ -145,8 +145,8 @@ port = os.Getenv("X_UI_MYSQL_PORT")
 
 ```
 ## Master/Slave
-MySQL inbound 的 remark 欄位填對應國碼
-MySQL usertraffic 的 country 欄位填允許使用的 inbound 國碼，用空格區分多個
+Postgresql inbound 的 remark 欄位填對應國碼
+Postgresql usertraffic 的 country 欄位填允許使用的 inbound 國碼，用空格區分多個
 ```
 //節點識別碼
 node = os.Getenv("X_UI_NODE_CODE")
